@@ -1,0 +1,22 @@
+services:
+  api:
+    build: .
+    restart: always
+    ports:
+      - "5001:5000" # Host:Container
+    env_file: .env
+    depends_on:
+      - db
+    volumes:
+      - ./uploads:/app/uploads
+      - ./wait-for-it.sh:/app/wait-for-it.sh # Skript konteinerisse
+    command: ["./wait-for-it.sh", "db", "--", "python", "app.py"]
+
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: arved
+    ports:
+      - "3306:3306"
