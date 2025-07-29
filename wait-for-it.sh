@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
-host="$1"
-shift
-until nc -z $host 3306; do
-  echo "Waiting for MySQL at $host:3306..."
+set -e
+
+HOST=$(echo $1 | cut -d: -f1)
+PORT=$(echo $1 | cut -d: -f2)
+
+shift 1
+
+while ! nc -z $HOST $PORT; do
+  echo "Waiting for $HOST:$PORT..."
   sleep 2
 done
+
+echo "$HOST:$PORT is available!"
 exec "$@"
