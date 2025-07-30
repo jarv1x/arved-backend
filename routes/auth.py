@@ -1,42 +1,38 @@
+
 from flask import Blueprint, request, jsonify
-from __init__ import db
-from models import User
+from werkzeug.security import generate_password_hash, check_password_hash
+from models import db, User
 import jwt
 import datetime
 import os
 
 auth_bp = Blueprint('auth', __name__)
-SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")
+SECRET_KEY = os.getenv('JWT_SECRET', 'supersecret')
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
+    data = request.json
+    if not data.get('email') or not data.get('password'):
+        return jsonify({'error': 'Missing email or password'}), 400
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({"message": "User already exists"}), 400
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({'error': 'User already exists'}), 400
 
-    user = User(email=email)
-    user.set_password(password)
+    hashed_pw = generate_password_hash(data['password'])
+    user = User(email=data['email'], password_hash=hashed_pw)
     db.session.add(user)
     db.session.commit()
-
-    return jsonify({"message": "User created"}), 201
+    return jsonify({'message': 'User registered successfully'}), 201
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
+    data = request.json
+    user = User.query.filter_by(email=data.get('email')).first()
+    if not user or not check_password_hash(user.password_hash, data.get('password')):
+        return jsonify({'error': 'Invalid credentials'}), 401
 
-    user = User.query.filter_by(email=email).first()
-    if not user or not user.check_password(password):
-        return jsonify({"message": "Invalid credentials"}), 401
-
-    token = jwt.encode({
-        'sub': user.id,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=12)
-    }, SECRET_KEY, algorithm="HS256")
-
-    return jsonify({"access_token": token})
+    token = jwt.encode(
+        {'user_id': user.id, 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)},
+        SECRET_KEY, algorithm='HS256'
+    )
+    return jsonify({'token': token})

@@ -6,4 +6,4 @@ apartments_bp = Blueprint('apartments', __name__)
 @apartments_bp.route('/apartments', methods=['GET'])
 def get_apartments():
     apartments = Apartment.query.all()
-    return jsonify([{"id": a.id, "name": a.name} for a in apartments])
+    return jsonify([{"id": apt.id, "name": apt.name} for apt in apartments])

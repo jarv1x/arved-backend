@@ -10,13 +10,13 @@ services:
       - .env
     working_dir: /app
     environment:
-      - FLASK_APP=app.py
+      - FLASK_APP=main.py
     volumes:
       - ./uploads:/app/uploads
     depends_on:
       - db
     command: >
-      sh -c "./wait-for-it.sh db:3306 -- python app.py"
+      sh -c "./wait-for-it.sh db:3306 -- python main.py"
 
   db:
     image: mysql:8.0
