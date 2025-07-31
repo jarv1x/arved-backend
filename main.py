@@ -16,7 +16,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
     'DATABASE_URL', 'sqlite:///app.db'
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET', 'supersecret')
+app.config['JWT_SECRET_KEY'] = 'supersecret'  # või .env-st
+# app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET', 'supersecret')
 
 # ✅ Initsialiseeri
 db.init_app(app)

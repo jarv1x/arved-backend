@@ -1,13 +1,10 @@
-
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User
-import jwt
-import datetime
-import os
+from flask_jwt_extended import create_access_token
+from datetime import timedelta
 
 auth_bp = Blueprint('auth', __name__)
-SECRET_KEY = os.getenv('JWT_SECRET', 'supersecret')
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
@@ -31,8 +28,8 @@ def login():
     if not user or not check_password_hash(user.password_hash, data.get('password')):
         return jsonify({'error': 'Invalid credentials'}), 401
 
-    token = jwt.encode(
-        {'user_id': user.id, 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)},
-        SECRET_KEY, algorithm='HS256'
-    )
-    return jsonify({'token': token})
+    # ✅ Oluline: identity -> user.id
+    access_token = create_access_token(identity=str(user.id), expires_delta=timedelta(hours=24))
+
+
+    return jsonify(access_token=access_token), 200
